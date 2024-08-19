@@ -9,6 +9,7 @@ import { MenuOutlined, TeamOutlined,PayCircleOutlined, DashboardOutlined } from 
 import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChatIcon } from '@chakra-ui/icons';
 import Dashboard from '../Component/Dashboard';
+import My_Calendar from '../Component/My_Calendar';
 
 
 function MainPage(){
@@ -23,6 +24,9 @@ function MainPage(){
     //定义一个状态变量activeContent，用于记录当前显示的内容
     const [activeContent, setActiveContent] = useState('default');
 
+    //定义一个状态变量activeMenuItem，用于记录当前选中的菜单项
+    const [activeMenuItem, setActiveMenuItem] = useState('default');
+
     //根据activeContent渲染不同的内容
     const renderContent = () => {
         switch (activeContent) {
@@ -30,8 +34,8 @@ function MainPage(){
             //hardcode chat content, 未来获取chat component
             return <Text>Chat Content</Text>;
           case "Calendar":
-            //hardcode calendar content, 未来获取calendar component
-            return <Text>Calendar Content</Text>;
+            //calendar component
+            return <My_Calendar/>;
           case "Discussion":
             //hardcode discussion content, 未来获取discussion component
             return <Text>Discussion Content</Text>;
@@ -48,6 +52,12 @@ function MainPage(){
       };
     const toggleSidebar = () => {
         setIsSidebarOpen(!isSidebarOpen);
+    }
+
+    //处理菜单点击事件
+    const handlemenuClick = (content) => {
+        setActiveContent(content);
+        setActiveMenuItem(content);
     }
 
     const handleLogout = () => {
@@ -116,9 +126,9 @@ function MainPage(){
                             justifyContent="flex-start"
                             leftIcon ={<DashboardOutlined/>}
                             width="full"
-                            colorScheme="purple"
+                            colorScheme={activeMenuItem === "Dashboard" ? "orange" : "purple"}
                             display={isSidebarOpen ? "flex" : "none"}
-                            onClick={() => setActiveContent("Dashboard")}
+                            onClick={() => handlemenuClick("Dashboard")}
                         >
                             Dashboard
                         </Button>
@@ -127,9 +137,9 @@ function MainPage(){
                             justifyContent="flex-start"
                             leftIcon ={<ChatIcon/>}
                             width="full"
-                            colorScheme="purple"
+                            colorScheme={activeMenuItem === "Chat" ? "orange" : "purple"}
                             display={isSidebarOpen ? "flex" : "none"}
-                            onClick={() => setActiveContent("Chat")}
+                            onClick={() => handlemenuClick("Chat")}
                         >
                             Chat
                         </Button>
@@ -138,9 +148,9 @@ function MainPage(){
                             justifyContent="flex-start"
                             leftIcon={<CalendarIcon/>}
                             width="full"
-                            colorScheme='purple'
+                            colorScheme={activeMenuItem === "Calendar" ? "orange" : "purple"}
                             display={isSidebarOpen ? "flex" : "none"}
-                            onClick={() => setActiveContent("Calendar")}
+                            onClick={() => handlemenuClick("Calendar")}
                         >
                             Calendar
                         </Button>
@@ -149,9 +159,9 @@ function MainPage(){
                             justifyContent="flex-start"
                             leftIcon ={<TeamOutlined/>}
                             width="full"
-                            colorScheme='purple'
+                            colorScheme={activeMenuItem === "Discussion" ? "orange" : "purple"}
                             display={isSidebarOpen ? "flex" : "none"}
-                            onClick={() => setActiveContent("Discussion")}
+                            onClick={() => handlemenuClick("Discussion")}
                         >
                             Discussion
                         </Button>
@@ -161,9 +171,9 @@ function MainPage(){
                             justifyContent="flex-start"
                             leftIcon ={<PayCircleOutlined/>}
                             width="full"
-                            colorScheme='purple'
+                            colorScheme={activeMenuItem === "Payment" ? "orange" : "purple"}
                             display={isSidebarOpen ? "flex" : "none"}
-                            onClick={() => setActiveContent("Payment")}
+                            onClick={() => handlemenuClick("Payment")}
                         >
                             Payment
                         </Button>
