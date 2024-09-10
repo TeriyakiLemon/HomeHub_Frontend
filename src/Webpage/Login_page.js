@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -12,15 +13,61 @@ import {
   InputLeftElement,
   Image,
   Stack,
+  useToast
 } from '@chakra-ui/react';
 import { EmailIcon, LockIcon } from '@chakra-ui/icons';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../Api';
 
 import LoginImage from '../Resources/Login_image.png';
 
 function LoginPage() {
   // 使用 useNavigate hook 來導航到其他頁面
-    const navigate = useNavigate(); 
+  const navigate = useNavigate(); 
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const toasts = useToast();
+  const handleLogin = async () => {
+    if (!username || !password) {
+      toasts({
+          title: 'Missing Information',
+          description: 'Please enter both username and password',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+      });
+      return;
+  }
+    try {
+      // 调用 login API
+      await login({
+        usernameOrEmail: username,
+        password,
+      });
+      // 登陆成功，显示成功消息
+      toasts({
+        title: 'Login Success',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      // 登陆成功后，导航到主页
+      navigate('/MainPage');
+    } catch (error) {
+      // 登陆失败，显示失败消息
+      toasts({
+        title: 'Login Failed',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    
+  }
+
+
+
 
   return (
     // 外层容器，设置全屏高度，垂直居中，背景颜色，内边距
@@ -67,7 +114,7 @@ function LoginPage() {
               <FormLabel>Username</FormLabel>
               <InputGroup>
                 <InputLeftElement children={<EmailIcon color="gray.500" />} />
-                <Input type="text" placeholder="Enter your username" />
+                <Input type="text" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)}/>
               </InputGroup>
             </FormControl>
             {/* 密码输入 */}
@@ -75,7 +122,7 @@ function LoginPage() {
               <FormLabel>Password</FormLabel>
               <InputGroup>
                 <InputLeftElement children={<LockIcon color="gray.500" />} />
-                <Input type="password" placeholder="Enter your password" />
+                <Input type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)}/>
               </InputGroup>
               {/* 忘记密码链接 */}
               <Flex justify="flex-end">
@@ -85,7 +132,7 @@ function LoginPage() {
               </Flex>
             </FormControl>
             {/* 登陆按钮 */}
-            <Button colorScheme="orange" size="lg" width="full">
+            <Button colorScheme="orange" size="lg" width="full" onClick={handleLogin}>
               Login Now
             </Button>
           </Stack>
