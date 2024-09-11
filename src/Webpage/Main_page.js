@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {ChakraProvider,
      Box, Flex, Text, IconButton, 
      Avatar, VStack, HStack, Icon, 
@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChatIcon } from '@chakra-ui/icons';
 import Dashboard from '../Component/Dashboard';
 import My_Calendar from '../Component/My_Calendar';
+import { handleLogout, getUserInfo } from '../Api';
 
 
 function MainPage(){
@@ -26,6 +27,25 @@ function MainPage(){
 
     //定义一个状态变量activeMenuItem，用于记录当前选中的菜单项
     const [activeMenuItem, setActiveMenuItem] = useState('default');
+
+    const[username,setUsername] = useState('');
+
+    // 当组件加载时调用 getUserInfo API 来获取用户名
+    useEffect(() => {
+        const fetchUsername = async () => {
+            try {
+                const userInfo = await getUserInfo();
+                setUsername(userInfo.username);  // 设置用户名
+            } catch (error) {
+                console.error('Failed to fetch username:', error);
+            }
+        };
+
+        fetchUsername();  // 调用函数获取用户名
+    }, []);  // 仅在组件首次加载时执行
+    
+
+
 
     //根据activeContent渲染不同的内容
     const renderContent = () => {
@@ -60,12 +80,8 @@ function MainPage(){
         setActiveMenuItem(content);
     }
 
-    const handleLogout = () => {
-        //执行登出操作
-        //localStorage.removeItem('token');
-        navigate('/');
-    };
 
+   
     return(
         <ChakraProvider>
             <Flex h = "100vh" flexDirection="column">
@@ -105,7 +121,7 @@ function MainPage(){
                             </MenuList>
                         </Menu>
                          {/* hardcode username, 未来需要从后端获取用户名 */}
-                        <Text>Username</Text>
+                        <Text ml="2">{username}</Text>
                     </Flex>
                 </Flex>
 
