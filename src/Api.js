@@ -7,6 +7,7 @@ const apiClient = axios.create({
         Accept: 'application/json',
         'Content-Type': 'application/json',
     },
+    withCredentials: true, // Send cookies when cross-domain requests
 });
 // Add a response interceptor
 const handleResponse = (response) => response.data;
@@ -59,5 +60,56 @@ export const login = async (user) => {
         }
     }
 };
+
+// Define the logout API calls
+export const handleLogout = async () => {
+    try {
+        // 向后端发送登出请求
+        const response = await apiClient.post('/logout', {}, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true // 这是 axios 中等同于 fetch 的 credentials: 'include'
+        });
+
+        if (response.status === 200) {
+            // 成功登出，清除本地存储的用户数据（如 token）
+            localStorage.removeItem('token'); // 如果使用 token 存储在 localStorage
+            sessionStorage.removeItem('token'); // 如果使用 sessionStorage
+
+            // 重定向用户到登录页面
+            window.location.href = '/';
+        } else {
+            console.error("Logout failed");
+        }
+    } catch (error) {
+        console.error("Error occurred during logout", error);
+    }
+};
+
+// 获取用户信息
+export const getUserInfo = async () => {
+    try {
+        // 发送 GET 请求到 /username 端点
+        const response = await apiClient.get('/username', {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true 
+        });
+
+        // 返回用户名数据
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw new Error(error.response.data.message);
+        } else {
+            throw new Error('Network error');
+        }
+    }
+};
+
+
+
 
 
