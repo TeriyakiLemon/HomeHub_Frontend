@@ -12,7 +12,9 @@ function Dashboard() {
   const nextService = scheduleServices
   .filter(service => moment(service.date).isAfter(moment()))  // 过滤掉过去的日期
   .sort((a, b) => moment(a.date).diff(moment(b.date)))  // 按日期排序
-  [0];  
+  [0];
+  
+  const UnreadMessage = 2; // 未读消息数量
   return (
 
     // Dashboard component content 目前只是简单的展示了一个Grid布局，包含四个GridItem
@@ -23,15 +25,25 @@ function Dashboard() {
       </Box>
       <Text fontSize="2xl" mb={4}>Dashboard</Text>
       <Grid templateColumns="repeat(2, 1fr)" gap={6}>
-        <GridItem w="100%" h="150px" bg="gray.100" p={4} borderRadius="md">
-          <Text fontSize="lg">Message</Text>
+        <GridItem w="100%" h="auto" bg="gray.100" p={4} borderRadius="md">
+          <Text fontSize="lg" mb={2}>Message</Text>
+          {/* 如果有未读消息，显示未读消息数量，否则显示没有未读消息 */}
+          {UnreadMessage ? (
+            <Text fontSize="md" color="red.500">
+              You have {UnreadMessage} unread messages.
+            </Text>
+          ) : (
+            <Text fontSize="md" color="green.500">
+              You have no unread messages.
+            </Text>
+          )}
         </GridItem>
         <GridItem w="100%" h="150px" bg="gray.100" p={4} borderRadius="md">
           <Text fontSize="lg">Payment</Text>
         </GridItem>
         {/* dashboard section show next service date */}
-        <GridItem w="300px" h="auto" bg="gray.100" p={4} borderRadius="md">
-          <Text fontSize="lg" mb={2}>Next Service</Text>
+        <GridItem w="100%" h="auto" bg="gray.100" p={4} borderRadius="md">
+          <Text fontSize="md" mb={2}>Next Service</Text>
           {/* 如果有下一个服务，显示下一个服务的日期，否则显示没有服务 */}
           {nextService ? (
             <Text fontSize="md" color="blue.500">
