@@ -11,6 +11,7 @@ import { CalendarIcon, ChatIcon } from '@chakra-ui/icons';
 import Dashboard from '../Component/Dashboard';
 import My_Calendar from '../Component/My_Calendar';
 import { handleLogout, getUserInfo } from '../Api';
+import MyChat from '../Component/MyChat';
 
 
 function MainPage(){
@@ -52,7 +53,7 @@ function MainPage(){
         switch (activeContent) {
           case "Chat":
             //hardcode chat content, 未来获取chat component
-            return <Text>Chat Content</Text>;
+            return <MyChat/>;
           case "Calendar":
             //calendar component
             return <My_Calendar/>;
@@ -197,12 +198,13 @@ function MainPage(){
                     </Box>
                     {/* 主体内容区域*/}
                     <Box
-                        flex="1"
-                        p="8"
-                        bg="purple.40"
-                        boxShadow="md"
-                        borderRadius="md"
-                        ml="4"
+                       flex="1"
+                       p="4"
+                       bg="purple.40"
+                       height="100%"     // 确保填满父容器的高度
+                       boxShadow="md"
+                       borderRadius="md"
+                       ml="4"
                     >
                         {renderContent()}
                     </Box>
