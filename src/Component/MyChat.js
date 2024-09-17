@@ -1,73 +1,149 @@
-import React, {useState} from "react";
-import { Layout, Input, List, Avatar, Typography, Button } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from "react";
+import { Layout, Input, List, Avatar, Typography, Button, Badge } from 'antd';
+import { SendOutlined, MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
+import { initWebSocket, sendMessage, getMessageBetweenUsers, getContacts,getUserInfo } from "../Api";
 
 const { Header, Content, Sider } = Layout;
 const { Text } = Typography;
 
-
 const MyChat = () => {
   const [collapsed, setCollapsed] = useState(false);
-  // 静态联系人列表
-  const [contacts] = useState(["user1", "user2", "user3"]);
+  const [contacts, setContacts] = useState([]);  // 存储联系人列表
+  const [messages, setMessages] = useState([]);  // 存储当前聊天的消息
+  const [currentContact, setCurrentContact] = useState(null);  // 当前聊天的联系人
+  const [newMessage, setNewMessage] = useState("");  // 新消息输入框
+  const [socket, setSocket] = useState(null);  // WebSocket 实例
+  const [currentUser, setCurrentUser] = useState(''); // 当前用户
 
-  // 静态消息记录，每个联系人有自己独立的消息数组
-  const [messages, setMessages] = useState({
-    user1: [{ user: "user1", content: "Hello", time: "10:00" }],
-    user2: [{ user: "user2", content: "Hi", time: "10:01" }],
-    user3: [], // user3 目前没有消息
-  });
+  // 获取联系人和消息
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactList = await getContacts();  // 从 API 获取联系人列表
+      setContacts(contactList.filter(contact => contact.username !== currentUser));  // 过滤掉当前用户
+      if (contactList.length > 0) {
+        setCurrentContact(contactList[0].username);  // 初次进入时打开第一个联系人的聊天
+      }
+    };
 
-  // 当前选中的联系人，默认选中user1
-  const [currentContact, setCurrentContact] = useState("user1");
+    // 动态获取当前登录用户
+    const fetchCurrentUser = async () => {
+      try {
+        const userInfo = await getUserInfo(); 
+        setCurrentUser(userInfo.username);
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+      }
+    };
 
-  // 新消息的输入内容
-  const [newMessage, setNewMessage] = useState("");
+    const socketConnection = initWebSocket((newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
 
-  // 发送消息，将消息保存到当前联系人的消息记录中
-  const handleSend = () => {
-    if (newMessage.trim()) {
-      setMessages({
-        ...messages,
-        [currentContact]: [
-          ...messages[currentContact],
-          { user: "Me", content: newMessage, time: "10:02 AM" }, // 模拟时间
-        ],
-      });
-      setNewMessage(""); // 清空输入框
+    setSocket(socketConnection);
+    fetchContacts();
+    fetchCurrentUser(); // 获取当前用户
+
+    return () => {
+      if (socketConnection) socketConnection.close();  // 清理 WebSocket 连接
+    };
+  }, [currentUser]);  // 添加 currentUser 依赖
+
+  // 获取当前联系人的消息
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (currentContact && currentUser) {
+        const initialMessages = await getMessageBetweenUsers(currentUser, currentContact);
+         // 检查返回的消息格式
+        if (initialMessages && initialMessages.length === 0) {
+          console.log("No messages found between users.");
+        }
+        console.log("Fetched messages:", initialMessages); 
+        setMessages(initialMessages || []);
+      } 
+    };
+    fetchMessages();
+  }, [currentContact, currentUser]);  // 在 currentUser 和 currentContact 改变时获取消息
+
+  // 发送消息
+  const handleSend = async () => {
+    if (newMessage.trim() && currentContact && currentUser) {
+      const messageData = {
+        senderUsername: currentUser,  
+        receiverUsername: currentContact, 
+        content: newMessage,
+        timestamp: new Date().toISOString(),  // 生成时间戳
+        isRead: false  // 默认未读
+      };
+      console.log("Sending message:", JSON.stringify(messageData));
+      try {
+        await sendMessage(messageData);  // 调用 API 发送消息
+        socket.send(JSON.stringify(messageData));  // 发送消息到 WebSocket 服务器
+        setMessages((prevMessages) => [...prevMessages, messageData]);  // 更新消息列表
+      } catch (error) {
+        console.error("Failed to send message:", error);
+      }
+      setNewMessage("");  // 清空输入框
     }
   };
 
+  // 选择联系人
+  const handleSelectContact = (contact) => {
+    setCurrentContact(contact.username);  
+    setContacts(
+      contacts.map((c) =>
+        c.username === contact.username ? { ...c, hasUnread: false } : c
+      )
+    );
+  };
+
   return (
-    <Layout style={{ height: "95vh", display: "flex", flexDirection: "row", overflow: "hidden" }}>
-      {/* 左侧联系人列表，占三分之一宽度 */}
-      <div
+    <Layout style={{ height: "95vh", overflow: "hidden" }}>
+      {/* 左侧联系人列表 */}
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        width={250}
         style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "33%",
-          backgroundColor: "#f0eaff", // 淡紫色背景
-          padding: "16px",
-          borderRight: "1px solid #ddd",
-          overflowY: "auto",
+          backgroundColor: "#f2e7fe",
+          padding: collapsed ? "8px" : "16px",
         }}
       >
-        <Text strong>Contacts</Text>
+        <Button
+          type="primary"
+          onClick={() => setCollapsed(!collapsed)}
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          style={{
+            marginBottom: "16px",
+            width: "100%",
+            backgroundColor: "#6c63ff",
+            border: "none",
+          }}
+        />
+        {!collapsed && <Text strong style={{ marginLeft: "10px" }}>Contacts</Text>}
         <List
           itemLayout="horizontal"
           dataSource={contacts}
           renderItem={(contact) => (
-            <List.Item onClick={() => setCurrentContact(contact)} style={{ cursor: "pointer" }}> {/* 点击切换联系人 */}
+            <List.Item
+              onClick={() => handleSelectContact(contact)}
+              style={{ cursor: "pointer" }}
+            >
               <List.Item.Meta
-                avatar={<Avatar>{contact[0]}</Avatar>} // 显示联系人名的第一个字母
-                title={contact}
+                avatar={
+                  <Badge dot={contact.hasUnread}>
+                    <Avatar>{contact.username[0]}</Avatar>
+                  </Badge>
+                }
+                title={collapsed ? "" : contact.username}
+                description={collapsed ? "" : "Latest message"}
               />
             </List.Item>
           )}
         />
-      </div>
+      </Sider>
 
-      {/* 右侧聊天窗口，占三分之二宽度 */}
+      {/* 右侧聊天窗口 */}
       <div
         style={{
           display: "flex",
@@ -78,7 +154,7 @@ const MyChat = () => {
         }}
       >
         <Header style={{ background: "#f0f2f5", padding: "0 16px" }}>
-          <div style={{ fontWeight: "bold" }}>Chat Room with {currentContact}</div> {/* 显示当前聊天的联系人 */}
+          <div style={{ fontWeight: "bold" }}>Chat Room with {currentContact}</div>
         </Header>
 
         <Content
@@ -87,24 +163,28 @@ const MyChat = () => {
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            overflow: "hidden", // 防止内容溢出
+            overflow: "hidden",
           }}
         >
-          {/* 聊天内容，设置最大高度和滚动条 */}
+          {/* 聊天内容 */}
           <div style={{ flex: 1, overflowY: "auto", marginBottom: "16px" }}>
-            <List
-              dataSource={messages[currentContact]} // 提取当前联系人的消息列表
-              renderItem={(message) => (
-                <List.Item key={message.time}>
-                  <List.Item.Meta
-                    avatar={<Avatar>{message.user ? message.user[0] : "?"}</Avatar>}
-                    title={<Text strong>{message.user || "Unknown"}</Text>}
-                    description={<Text>{message.content}</Text>}
-                  />
-                  <div>{message.time}</div>
-                </List.Item>
-              )}
-            />
+            {messages.length > 0 ? (
+              <List
+                dataSource={messages}
+                renderItem={(message) => (
+                  <List.Item key={message.id}>
+                    <List.Item.Meta
+                      avatar={<Avatar>{message.senderUsername ? message.senderUsername[0] : "?"}</Avatar>}
+                      title={<Text strong>{message.senderUsername || "Unknown"}</Text>}
+                      description={<Text>{message.content}</Text>}
+                    />
+                    <div>{new Date(message.timestamp).toLocaleString()}</div>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <div style={{ textAlign: "center", color: "#888" }}>No messages yet</div>  // 提示无消息
+            )}
           </div>
 
           {/* 消息输入框 */}

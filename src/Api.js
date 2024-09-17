@@ -109,6 +109,76 @@ export const getUserInfo = async () => {
     }
 };
 
+//调用发送信息API
+
+export const sendMessage = async (message) => {
+    try {
+    const response = await apiClient.post('/messages/Send', message);
+    return handleResponse(response);
+  } catch (error) {
+    console.error("Error sending message:", error.response ? error.response.data : error.message);
+    handleError(error);
+  }
+};
+
+//调用获取信息API
+
+export const getMessageBetweenUsers = async (username1,username2) => {
+    try {
+        const response = await apiClient.get(`messages/${username1}/${username2}`);
+        return response.data || [];  // 保证返回一个数组
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          return [];  // 如果是找不到记录，则返回空数组
+        }
+        handleError(error);
+      }
+}
+
+//初始化websocket
+export const initWebSocket = (onMessageReceived) => {
+    const socket = new WebSocket('ws://localhost:8080/chat'); 
+    socket.onopen = () => {
+        console.log('WebSocket is open now.');
+    };
+
+    socket.onmessage = (event) => {
+        console.log('Raw WebSocket message received:', event.data);
+  
+        try {
+            // 尝试解析 JSON 数据
+            const message = JSON.parse(event.data);
+            onMessageReceived(message);  // 调用消息处理回调
+            console.log('Parsed WebSocket message:', message);
+        } catch (error) {
+            // 如果解析失败，打印错误信息
+            console.error('Failed to parse WebSocket message:', error);
+        }
+        };
+
+    socket.onerror = (error) => {
+        console.error('WebSocket error: ' , error);
+    };
+
+    socket.onclose = () => {
+        console.log('WebSocket is closed now.');
+    };
+
+    return socket;
+};
+
+//获取联系人列表
+
+export const getContacts = async () => {
+    try {
+        const response = await apiClient.get('/GetUserBycommunityName');
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+
 
 
 
