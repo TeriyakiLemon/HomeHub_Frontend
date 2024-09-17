@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Input, List, Avatar, Typography, Button, Badge } from 'antd';
 import { SendOutlined, MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
-import { initWebSocket, sendMessage, getMessageBetweenUsers, getContacts,getUserInfo } from "../Api";
+import { initWebSocket, sendMessage, getMessageBetweenUsers, getContacts,getUserInfo,markMessageRead } from "../Api";
 
 
 const { Header, Content, Sider } = Layout;
@@ -101,8 +101,21 @@ const MyChat = () => {
   };
 
   // 选择联系人
-  const handleSelectContact = (contact) => {
-    setCurrentContact(contact.username);  
+  const handleSelectContact = async (contact) => {
+    setCurrentContact(contact.username);
+    const unreadMessages = messages.filter(message => !message.isRead && message.senderUsername === contact.username);
+    
+    for (let message of unreadMessages) {
+      try {
+        await Promise.all(
+          unreadMessages.map(message => markMessageRead(message.id))
+        );  // 调用 markMessageRead API，传递消息的 id
+        console.log(`Message with ID ${message.id} marked as read.`);
+      } catch (error) {
+        console.error(`Failed to mark message ID ${message.id} as read:`, error);
+      }
+    }
+    
     setContacts(
       contacts.map((c) =>
         c.username === contact.username ? { ...c, hasUnread: false } : c

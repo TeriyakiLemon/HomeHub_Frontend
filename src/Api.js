@@ -178,6 +178,26 @@ export const getContacts = async () => {
     }
 }
 
+//标记信息已读
+export const markMessageRead = async (messageId) => {
+    try {
+        const response = await apiClient.put(`/messages/${messageId}/Read`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//获取未读信息数量
+export const getUnreadMessageCount = async (username) => {
+    try {
+        const response = await apiClient.get(`/messages/UnreadCount/${username}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
 
 
 
