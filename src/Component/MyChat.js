@@ -3,6 +3,7 @@ import { Layout, Input, List, Avatar, Typography, Button, Badge } from 'antd';
 import { SendOutlined, MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
 import { initWebSocket, sendMessage, getMessageBetweenUsers, getContacts,getUserInfo } from "../Api";
 
+
 const { Header, Content, Sider } = Layout;
 const { Text } = Typography;
 
@@ -37,6 +38,7 @@ const MyChat = () => {
 
     const socketConnection = initWebSocket((newMessage) => {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
+      updateLatestMessage(newMessage);
     });
 
     setSocket(socketConnection);
@@ -79,11 +81,23 @@ const MyChat = () => {
         await sendMessage(messageData);  // 调用 API 发送消息
         socket.send(JSON.stringify(messageData));  // 发送消息到 WebSocket 服务器
         setMessages((prevMessages) => [...prevMessages, messageData]);  // 更新消息列表
+        updateLatestMessage(messageData);  // 更新最新消息
       } catch (error) {
         console.error("Failed to send message:", error);
       }
       setNewMessage("");  // 清空输入框
     }
+  };
+
+  const updateLatestMessage = (message) => {
+    setContacts(prevContacts =>
+      prevContacts.map(contact =>
+        contact.username === message.receiverUsername || contact.username === message.senderUsername
+          ? { ...contact, latestMessage: message.content,
+            hasUnread: currentContact !== contact.username && message.senderUsername !== currentUser } // If the message is from another user and the contact is not the active one }
+          : contact
+      )
+    );
   };
 
   // 选择联系人
@@ -136,7 +150,7 @@ const MyChat = () => {
                   </Badge>
                 }
                 title={collapsed ? "" : contact.username}
-                description={collapsed ? "" : "Latest message"}
+                description={collapsed ? "" : contact.latestMessage || "No messages yet"} 
               />
             </List.Item>
           )}
