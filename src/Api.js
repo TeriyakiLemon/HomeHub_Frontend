@@ -198,6 +198,89 @@ export const getUnreadMessageCount = async (username) => {
     }
 }
 
+//Discussion API
+//获取讨论列表
+
+export const getDiscussions = async () => {
+    try {
+        const response = await apiClient.get('discussions/getAllDiscussions');
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//创建讨论
+export const createDiscussion = async (discussion) => {
+    try {
+        const response = await apiClient.post('discussions/Create', discussion);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//删除讨论
+export const deleteDiscussion = async (discussionId) => {
+    try {
+        const response = await apiClient.delete(`discussions/Delete/${discussionId}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//创建回复
+export const createReply = async (reply) => {
+    try {
+        const response = await apiClient.post('replies/create', reply);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//获取讨论回复
+export const getReplies = async (discussionId) => {
+    try {
+        const response = await apiClient.get(`replies/getRepliesByDiscussionId/${discussionId}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//删除回复
+export const deleteReply = async (replyId) => {
+    try {
+        const response = await apiClient.delete(`replies/Delete/${replyId}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//获取未读回复数量
+export const getUnreadReplyCount = async (username) => {
+    try {
+        const response = await apiClient.get(`replies/countUnreadReplies/${username}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+
+//标记回复已读
+export const markReplyRead = async (username) => {
+    try {
+        const response = await apiClient.put(`replies/markAsRead/${username}`);
+        return handleResponse(response);
+    } catch (error) {
+        handleError(error);
+    }
+}
+ 
+
 
 
 
