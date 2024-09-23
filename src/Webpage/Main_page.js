@@ -1,23 +1,20 @@
 import React, {useState,useEffect} from 'react';
 import {ChakraProvider,
      Box, Flex, Text, IconButton, 
-     Avatar, VStack, HStack, Icon, 
-     Button, Grid, GridItem,Menu,MenuItem,
+     Avatar, VStack,
+     Button,Menu,MenuItem,
      MenuButton,MenuList} from '@chakra-ui/react';
 
 import { MenuOutlined, TeamOutlined,PayCircleOutlined, DashboardOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom';
 import { CalendarIcon, ChatIcon } from '@chakra-ui/icons';
 import Dashboard from '../Component/Dashboard';
 import My_Calendar from '../Component/My_Calendar';
 import { handleLogout, getUserInfo } from '../Api';
 import MyChat from '../Component/MyChat';
+import MyDiscussion from '../Component/MyDiscussion';
 
 
 function MainPage(){
-
-    //使用useNavigate hook来导航到其他页面
-    const navigate = useNavigate();
 
     //定义一个状态变量isSidebarOpen，用于记录侧边栏是否展开
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -52,14 +49,14 @@ function MainPage(){
     const renderContent = () => {
         switch (activeContent) {
           case "Chat":
-            //hardcode chat content, 未来获取chat component
+            //获取chat component
             return <MyChat/>;
           case "Calendar":
             //calendar component
             return <My_Calendar/>;
           case "Discussion":
-            //hardcode discussion content, 未来获取discussion component
-            return <Text>Discussion Content</Text>;
+            //获取discussion component
+            return <MyDiscussion/>;
           case "Payment":
             //hardcode payment content, 未来获取payment component
             return <Text >Payment Content</Text>;
