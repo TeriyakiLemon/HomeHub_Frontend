@@ -5,13 +5,17 @@ import moment from 'moment';  // 引入moment库用于日期处理
 
 //引入静态数据用于测试
 import scheduleServices from '../static_data_for_test/ScheduleData';
-import {getUnreadMessageCount, getUserInfo} from '../Api';
+import {getUnreadMessageCount, getUserInfo, getUnreadReplyCount} from '../Api';
 
 
 
 function Dashboard() {
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);  // 未读消息状态
+  
   const[username,setUsername] = useState(''); // 用户名状态
+  const [unreadReplyCount, setUnreadReplyCount] = useState(0);  // 未读回复状态
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);  // 未读消息状态
+
+
 
   // 当组件加载时调用 getUserInfo API 来获取用户名
   useEffect(() => {
@@ -42,6 +46,19 @@ function Dashboard() {
     }
   }, [username]);  // 当用户名变化时重新调用
 
+  useEffect(() => {
+    const fetchUnreadReplies = async () => {
+      try {
+        const count = await getUnreadReplyCount(username);  // 获取未读回复的数量
+        console.log("API response for unread replies:", count);  // 添加日志查看 API 返回的数据
+        setUnreadReplyCount(count);  // 更新状态
+      } catch (error) {
+        console.error('Failed to fetch unread replies:', error);
+      }
+    };
+  
+    fetchUnreadReplies();
+  }, [username]);
 
 //获取最近的服务日期
   const nextService = scheduleServices
@@ -91,6 +108,16 @@ function Dashboard() {
         </GridItem>
         <GridItem w="100%" h="150px" bg="gray.100" p={4} borderRadius="md">
           <Text fontSize="lg">Discussion</Text>
+          
+              {unreadReplyCount > 0 ? (
+                <Text fontSize="md" color="red.500">
+                  You have {unreadReplyCount} new replies to your discussions !
+                </Text>
+              ) : (
+                <Text fontSize="md" color="green.500">
+                  You have no new replies.
+                </Text>
+              )}
         </GridItem>
       </Grid>
     </Box>
